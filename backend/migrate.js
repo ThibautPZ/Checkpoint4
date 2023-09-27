@@ -6,6 +6,7 @@ const path = require("node:path");
 
 // Build the path to the schema SQL file
 const schema = path.join(__dirname, "database", "schema.sql");
+const inserts = path.join(__dirname, "database", "sample.sql");
 
 // Get database connection details from .env file
 const { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
@@ -35,9 +36,11 @@ const migrate = async () => {
 
     // Read the SQL statements from the schema file
     const sql = fs.readFileSync(schema, "utf8");
+    const dump = fs.readFileSync(inserts, "utf8");
 
     // Execute the SQL statements to update the database schema
     await database.query(sql);
+    await database.query(dump);
 
     // Close the database connection
     database.end();
