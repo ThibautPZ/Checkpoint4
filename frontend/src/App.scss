@@ -1,0 +1,10 @@
+@use "reset";
+@use "variables";
+
+
+body {
+ background-color: variables.$myWhite ; 
+ font-family: variables.$catamaran;
+ color: variables.$myBlack;
+}
+
