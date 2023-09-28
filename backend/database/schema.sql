@@ -8,7 +8,7 @@ CREATE TABLE
     ) ENGINE = InnoDB;
 
 CREATE TABLE
-    IF NOT EXISTS `painting_types` (
+    IF NOT EXISTS `techniques` (
         `id` INT NOT NULL AUTO_INCREMENT,
         `name` VARCHAR(128) NOT NULL,
         PRIMARY KEY (`id`)
@@ -18,6 +18,13 @@ CREATE TABLE
     IF NOT EXISTS `families` (
         `id` INT NOT NULL AUTO_INCREMENT,
         `name` VARCHAR(128) NOT NULL,
+        PRIMARY KEY (`id`)
+    ) ENGINE = InnoDB;
+
+CREATE TABLE
+    IF NOT EXISTS `supports` (
+        `id` INT NOT NULL AUTO_INCREMENT,
+        `name` VARCHAR(64) NOT NULL,
         PRIMARY KEY (`id`)
     ) ENGINE = InnoDB;
 
@@ -33,16 +40,28 @@ CREATE TABLE
         `id` INT NOT NULL AUTO_INCREMENT,
         `title` VARCHAR(128) NOT NULL,
         `pathname` VARCHAR(128) NOT NULL,
+        `comment` TEXT NULL,
         `width` INT NOT NULL,
         `height` INT NOT NULL,
+        `sold` TINYINT NOT NULL,
         `family_member` INT NULL,
         `families_id` INT NULL,
         `painting_sizes_id` INT NOT NULL,
-        `painting_types_id` INT NOT NULL,
+        `supports_id` INT NOT NULL,
         PRIMARY KEY (`id`),
         CONSTRAINT `fk_paintings_families` FOREIGN KEY (`families_id`) REFERENCES `families` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
         CONSTRAINT `fk_paintings_painting_sizes` FOREIGN KEY (`painting_sizes_id`) REFERENCES `painting_sizes` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-        CONSTRAINT `fk_paintings_painting_types` FOREIGN KEY (`painting_types_id`) REFERENCES `painting_types` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+        CONSTRAINT `fk_paintings_supports` FOREIGN KEY (`supports_id`) REFERENCES `supports` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+    ) ENGINE = InnoDB;
+
+CREATE TABLE
+    IF NOT EXISTS `paintings_has_techniques` (
+        `id` INT NOT NULL AUTO_INCREMENT,
+        `paintings_id` INT NOT NULL,
+        `techniques_id` INT NOT NULL,
+        PRIMARY KEY (`id`),
+        CONSTRAINT `fk_paintings_has_techniques_paintings` FOREIGN KEY (`paintings_id`) REFERENCES `paintings` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+        CONSTRAINT `fk_paintings_has_techniques_techniques` FOREIGN KEY (`techniques_id`) REFERENCES `techniques` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
     ) ENGINE = InnoDB;
 
 CREATE TABLE
@@ -68,6 +87,7 @@ CREATE TABLE
         `id` INT NOT NULL AUTO_INCREMENT,
         `sender_name` VARCHAR(64) NULL,
         `sender_email` VARCHAR(64) NULL,
+        `sender_phone` VARCHAR(64) NULL,
         `message` TEXT NOT NULL,
         `users_id` INT NULL,
         PRIMARY KEY (`id`),
@@ -76,7 +96,7 @@ CREATE TABLE
 
 CREATE TABLE
     IF NOT EXISTS `favorite_paintings` (
-        `id` VARCHAR(45) NOT NULL,
+        `id` INT NOT NULL AUTO_INCREMENT,
         `paintings_id` INT NOT NULL,
         `users_id` INT NOT NULL,
         PRIMARY KEY (`id`),
