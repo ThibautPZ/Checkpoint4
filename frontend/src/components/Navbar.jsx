@@ -1,35 +1,110 @@
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axiosInstance from "../services/axiosInstance";
+
+import BurgerMenuPopUp from "./BurgerMenuPopUp";
+
+import "../scss/Navbar.scss";
+
+import TechniquesMenuPopUp from "./TechniquesMenuPopUp";
+import FormatsMenuPopUp from "./FormatsMenuPopUp";
+import NavbarCategoriesButtons from "./NavbarCategoriesButtons";
 
 function Navbar() {
+  const navigate = useNavigate();
+
+  const [characteristicsList, setCharacteristicsList] = useState({
+    formats: [],
+    techniques: [],
+  });
+
+  const [popUpOpen, setPopUpOpen] = useState({
+    burger: false,
+    subMenu: null,
+  });
+
+  const handleBurgerClick = () => {
+    setPopUpOpen({ burger: !popUpOpen.burger, subMenu: null });
+  };
+
+  const handleCategorySelected = (category) => {
+    setPopUpOpen({ ...popUpOpen, subMenu: category });
+  };
+  const handleNavigationSelected = (pageName) => {
+    let link = "/";
+    setPopUpOpen({ burger: false, subMenu: null });
+    if (pageName !== "Accueil") {
+      link = `${link}${pageName}`;
+    }
+    navigate(link);
+  };
+  const fetchOeuvresCharacteristics = async () => {
+    try {
+      const formatsList = await axiosInstance.get("/api/paintings/sizes");
+      const techniquesList = await axiosInstance.get(
+        "/api/paintings/techniques"
+      );
+      setCharacteristicsList({
+        formats: formatsList.data,
+        techniques: techniquesList.data,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchOeuvresCharacteristics();
+  }, []);
+
   return (
-    <>
-      <Link to="/">
-        <p>Accueil</p>
-      </Link>
-      <Link to="/oeuvres">
-        <p>Oeuvres</p>
-      </Link>
-      <Link to="/oeuvres/acrylique">
-        <p>acrylique</p>
-      </Link>
-      <Link to="/oeuvres/huile">
-        <p>Huile</p>
-      </Link>
-      <Link to="/oeuvres/aquarelle">
-        <p>aquarelle</p>
-      </Link>
-      <Link to="/oeuvres/crayon">
-        <p>crayon</p>
-      </Link>
-      <Link to="/oeuvres/minis">
-        <p>minis</p>
-      </Link>
-      <Link to="/oeuvres/tableaux">
-        <p>tableaux</p>
-      </Link>
-      <Link to="/oeuvres/maxis">
-        <p>maxis</p>
-      </Link>
+    <div className="Navbar">
+      <div className="NavbarDesktop">
+        <NavbarCategoriesButtons
+          category="Accueil"
+          handleCategorySelected={handleNavigationSelected}
+        />
+        <NavbarCategoriesButtons
+          category="Oeuvres"
+          handleCategorySelected={handleNavigationSelected}
+        />
+        <NavbarCategoriesButtons
+          category="Techniques"
+          handleCategorySelected={handleCategorySelected}
+        />
+        <NavbarCategoriesButtons
+          category="Formats"
+          handleCategorySelected={handleCategorySelected}
+        />
+      </div>
+      <button
+        className="NavbarMobile"
+        type="button"
+        onClick={handleBurgerClick}
+      >
+        <img
+          id="burger"
+          src="/src/assets/images/burger-menu.svg"
+          alt="burger-menu"
+        />
+      </button>
+      <BurgerMenuPopUp
+        popUpOpen={popUpOpen}
+        handleNavigationSelected={handleNavigationSelected}
+        handleCategorySelected={handleCategorySelected}
+      />
+      <TechniquesMenuPopUp
+        popUpOpen={popUpOpen}
+        setPopUpOpen={setPopUpOpen}
+        techniques={characteristicsList.techniques}
+      />
+      <FormatsMenuPopUp
+        popUpOpen={popUpOpen}
+        setPopUpOpen={setPopUpOpen}
+        formats={characteristicsList.formats}
+      />
+
+      {/* 
       <Link to="/projets">
         <p>projets</p>
       </Link>
@@ -62,8 +137,8 @@ function Navbar() {
       </Link>
       <Link to="/management/utilisateurs">
         <p>utilisateurs management</p>
-      </Link>
-    </>
+      </Link> */}
+    </div>
   );
 }
 
