@@ -33,6 +33,11 @@ class AbstractManager {
     this.table = table;
     this.database = database;
   }
+
+  async readAll() {
+    // Execute the SQL SELECT query to retrieve all items from the "item" table
+    return this.database.query(`select * from ${this.table}`);
+  }
 }
 
 // Ready to export

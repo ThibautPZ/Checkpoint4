@@ -1,15 +1,20 @@
 import { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
 import OeuvresList from "../components/OeuvresList";
 
-import "../scss/Oeuvres.scss";
+import "../scss/Categorie.scss";
 
-function Oeuvres() {
+function Format() {
+  const { nomFormat } = useParams();
+
   const [oeuvresList, setOeuvresList] = useState([]);
 
-  const fetchAllOeuvres = async () => {
+  const fetchOeuvresByFormat = async () => {
     try {
-      const paintingsList = await axiosInstance.get(`/api/paintings/`);
+      const paintingsList = await axiosInstance.get(
+        `/api/paintings/format/${nomFormat}`
+      );
 
       setOeuvresList(paintingsList.data);
     } catch (error) {
@@ -18,16 +23,16 @@ function Oeuvres() {
   };
 
   useEffect(() => {
-    fetchAllOeuvres();
-  }, []);
+    fetchOeuvresByFormat();
+  }, [nomFormat]);
 
   return (
-    <div className="Oeuvres">
-      <h1>Toutes mes oeuvres</h1>
+    <div className="Categorie">
+      <h1>Format {nomFormat}</h1>
 
       <OeuvresList oeuvresList={oeuvresList} />
     </div>
   );
 }
 
-export default Oeuvres;
+export default Format;

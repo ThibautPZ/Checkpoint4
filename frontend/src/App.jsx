@@ -1,16 +1,16 @@
 import { Outlet } from "react-router-dom";
 import Navbar from "./components/Navbar";
 
-import "./App.scss";
+import "./scss/App.scss";
 
 function App() {
   return (
-    <div className="App">
-      <header>
-        <Navbar />
-      </header>
-      <Outlet />
-    </div>
+    <>
+      <Navbar />
+      <div className="App">
+        <Outlet />
+      </div>
+    </>
   );
 }
 
