@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
+import { useNavbarClassnameContext } from "../contexts/NavbarClassnameContext";
 
 import BurgerMenuPopUp from "./BurgerMenuPopUp";
 
@@ -12,6 +13,8 @@ import NavbarCategoriesButtons from "./NavbarCategoriesButtons";
 
 function Navbar() {
   const navigate = useNavigate();
+
+  const { navbarClassname } = useNavbarClassnameContext();
 
   const [characteristicsList, setCharacteristicsList] = useState({
     formats: [],
@@ -30,6 +33,7 @@ function Navbar() {
   const handleCategorySelected = (category) => {
     setPopUpOpen({ ...popUpOpen, subMenu: category });
   };
+
   const handleNavigationSelected = (pageName) => {
     let link = "/";
     setPopUpOpen({ burger: false, subMenu: null });
@@ -58,10 +62,14 @@ function Navbar() {
   }, []);
 
   return (
-    <div className="Navbar">
+    <div className={navbarClassname}>
       <div className="NavbarDesktop">
         <NavbarCategoriesButtons
           category="Accueil"
+          handleCategorySelected={handleNavigationSelected}
+        />
+        <NavbarCategoriesButtons
+          category="Diaporama"
           handleCategorySelected={handleNavigationSelected}
         />
         <NavbarCategoriesButtons
