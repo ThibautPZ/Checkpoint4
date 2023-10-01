@@ -1,10 +1,6 @@
 @use "reset";
 @use "variables";
 
-.banner {
-  max-width: 100vw;
-}
-
 p {
   font-size: 20px;
 }
@@ -15,7 +11,7 @@ h2 {
 
 .OeuvreDisplay {
   background-color: variables.$myWhite;
-
+  animation: fadeIn 3s;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -35,15 +31,12 @@ h2 {
   }
 }
 
-@media (min-width: variables.$breakpoint-large) {
-  .NavbarMobile {
-    visibility: hidden;
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
   }
 
-  .NavbarDesktop {
-    visibility: visible;
-  }
-  .banner {
-    margin-left: 4vw;
+  100% {
+    opacity: 1;
   }
 }
