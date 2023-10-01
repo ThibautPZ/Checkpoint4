@@ -1,0 +1,55 @@
+@use "reset";
+@use "variables";
+
+.FadeInDiapo {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  padding: 10px;
+  img {
+    object-fit: contain;
+    width: 100%;
+    max-height: 100%;
+    animation: FadeIn 3s linear //initial 1 normal initial initial
+;
+  }
+  // animatio
+}
+
+.FadeOutDiapo {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  padding: 10px;
+  img {
+    object-fit: contain;
+    width: 100%;
+    max-height: 100%;
+    animation: FadeOut 3s linear; //initial 1 normal initial initial;
+    opacity: 0;
+  }
+  // animatio
+}
+
+@keyframes FadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes FadeOut {
+  0% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
