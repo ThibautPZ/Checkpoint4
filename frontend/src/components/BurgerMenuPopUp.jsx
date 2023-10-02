@@ -15,6 +15,10 @@ function BurgerMenuPopUp({
         handleCategorySelected={handleNavigationSelected}
       />
       <NavbarCategoriesButtons
+        category="Diaporama"
+        handleCategorySelected={handleNavigationSelected}
+      />
+      <NavbarCategoriesButtons
         category="Oeuvres"
         handleCategorySelected={handleNavigationSelected}
       />
