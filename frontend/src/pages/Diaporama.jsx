@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
 import { useNavbarClassnameContext } from "../contexts/NavbarClassnameContext";
 
@@ -12,16 +13,16 @@ function Diaporama() {
     useState("DiapoButtonsHidden");
   const [timeOutWillBeStarted, setTimeOutWillBeStarted] = useState(false);
   const [count, setCount] = useState(0);
-  const [storedTimeOutId, setStoredTimeOutId] = useState(null);
+  const [storedTimeFunctionsIds, setStoredTimeFunctionsIds] = useState({
+    nFadeIntervId: 0,
+    nNextTimeOutId: 0,
+    nHideTimeOutId: 0,
+  });
   const [diapoDuration, setDiapoDuration] = useState(15000);
 
   const { navbarClassname, setNavbarClassname } = useNavbarClassnameContext();
 
-  // const diapoDuration = 15000; // 15s par diapo
-
-  let nFadeIntervId; // variable to store our intervalID
-
-  let nTimeOutId;
+  const navigate = useNavigate();
 
   const fetchAllOeuvres = async () => {
     try {
@@ -47,6 +48,8 @@ function Diaporama() {
   };
 
   const setRandomOeuvreToDisplay = () => {
+    // console.log(storedTimeFunctionsIds);
+    // console.log(oeuvresList);
     let currentOeuvreIndex = 0;
     if (currentOeuvre.id) {
       currentOeuvreIndex = currentOeuvre.id;
@@ -61,26 +64,62 @@ function Diaporama() {
 
   const fadeOutCurrentThenDisplayNext = () => {
     setFadeInOutClassname("FadeOutDiapo");
-    setTimeout(() => {
+    if (storedTimeFunctionsIds.nNextTimeOutId) {
+      clearTimeout(storedTimeFunctionsIds.nNextTimeOutId);
+    }
+    const nNextTimeOutId = setTimeout(() => {
+      console.warn("next");
       setRandomOeuvreToDisplay();
       setFadeInOutClassname("FadeInDiapo");
     }, 3100);
+    setStoredTimeFunctionsIds({
+      ...storedTimeFunctionsIds,
+      nNextTimeOutId,
+    });
   };
 
   const changeOeuvre = () => {
-    // console.log(diapoDuration);
+    // console.log(storedTimeFunctionsIds);
     // check if an interval has already been set up
-    if (!nFadeIntervId) {
-      nFadeIntervId = setInterval(fadeOutCurrentThenDisplayNext, diapoDuration);
+    if (storedTimeFunctionsIds.nFadeIntervId) {
+      clearInterval(storedTimeFunctionsIds.nFadeIntervId);
     }
-  };
+    const nFadeIntervId = setInterval(
+      () => {
+        console.warn("fade");
+        fadeOutCurrentThenDisplayNext();
+      },
 
+      diapoDuration
+    );
+    setStoredTimeFunctionsIds({
+      ...storedTimeFunctionsIds,
+      nFadeIntervId,
+    });
+  };
+  // console.log(storedTimeFunctionsIds);
   const initializeDiaporama = () => {
     setRandomOeuvreToDisplay();
+    // changeOeuvre();
+  };
+
+  const stopDiaporama = () => {
+    // console.log("stop");
+
+    clearInterval(storedTimeFunctionsIds.nFadeIntervId);
+    clearInterval(storedTimeFunctionsIds.nFadeIntervId + 1);
+  };
+
+  const startDiaporama = () => {
+    // console.log("start");
+
     changeOeuvre();
   };
 
-  // console.log("page body:", timeOutWillBeStarted);
+  const navigateToOeuvre = () => {
+    setNavbarClassname("Navbar");
+    navigate(`/oeuvre/${currentOeuvre.title}`);
+  };
 
   const showNavbarAndButtons = () => {
     if (
@@ -93,14 +132,22 @@ function Diaporama() {
   };
 
   useEffect(() => {
-    const timer = setInterval(() => {
+    fetchAllOeuvres();
+
+    if (navbarClassname === "Navbar") {
+      setNavbarClassname("NavbarDiapoHidden");
+    }
+
+    const nTimerIntervId = setInterval(() => {
       setCount((prev) => prev + 1);
     }, 500);
-    return () => {
-      clearInterval(timer);
-      clearInterval(nFadeIntervId);
 
-      clearInterval(storedTimeOutId);
+    return () => {
+      // console.log(storedTimeFunctionsIds);
+      clearInterval(nTimerIntervId);
+      clearInterval(storedTimeFunctionsIds.nFadeIntervId);
+      clearTimeout(storedTimeFunctionsIds.nNextTimeOutId);
+      clearTimeout(storedTimeFunctionsIds.nHideTimeOutId);
       setNavbarClassname("Navbar");
     };
   }, []);
@@ -108,14 +155,12 @@ function Diaporama() {
   useEffect(() => {
     // console.log("checkTimeOutToBeStarted: ", timeOutWillBeStarted);
     if (timeOutWillBeStarted) {
-      if (storedTimeOutId) {
+      if (storedTimeFunctionsIds.nHideTimeOutId) {
         showNavbarAndButtons();
-        clearTimeout(storedTimeOutId);
-        // nTimeOutId = null;
-        console.error("nTimennnnn: ", storedTimeOutId);
+        clearTimeout(storedTimeFunctionsIds.nHideTimeOutId);
       }
-      nTimeOutId = setTimeout(() => {
-        console.warn("time", nTimeOutId);
+      const nHideTimeOutId = setTimeout(() => {
+        console.warn("time", storedTimeFunctionsIds.nHideTimeOutId);
         if (navbarClassname !== "NavbarDiapoHidden") {
           setNavbarClassname("NavbarDiapoHidden");
         }
@@ -123,30 +168,36 @@ function Diaporama() {
           setButtonsShownClassname("DiapoButtonsHidden");
         }
       }, 3000);
-      setStoredTimeOutId(nTimeOutId);
+      setStoredTimeFunctionsIds({ ...storedTimeFunctionsIds, nHideTimeOutId });
+      // console.log(storedTimeFunctionsIds);
 
       setTimeOutWillBeStarted((prev) => !prev);
     }
   }, [count]);
 
   useEffect(() => {
-    if (!oeuvresList.length) {
-      fetchAllOeuvres();
-    } else {
+    if (oeuvresList.length) {
+      //   console.log("fetch");
+      //   fetchAllOeuvres();
+      // } else {
+      // console.log("init");
       initializeDiaporama();
     }
-    if (navbarClassname === "Navbar") {
-      setNavbarClassname("NavbarDiapoHidden");
-    }
+    // if (navbarClassname === "Navbar") {
+    //   setNavbarClassname("NavbarDiapoHidden");
+    // }
   }, [oeuvresList]);
 
-  return currentOeuvre.id ? (
-    <>
+  // console.log(currentOeuvre);
+  return currentOeuvre?.id ? (
+    <div
+      className="DiapoParent"
+      onMouseMove={() => setTimeOutWillBeStarted(true)}
+      onTouchStart={() => setTimeOutWillBeStarted(true)}
+    >
       <div
-        // key={currentOeuvre.id}
         className={fadeInOutClassname}
-        onMouseMove={() => setTimeOutWillBeStarted(true)}
-        onTouchStart={() => setTimeOutWillBeStarted(true)}
+        // key={currentOeuvre.id}
       >
         <img
           src={`${import.meta.env.VITE_BACKEND_URL}${
@@ -155,16 +206,43 @@ function Diaporama() {
           alt={currentOeuvre.title}
         />
       </div>
-      <input
-        type="range"
-        id="DiapoDuration"
-        min="10000"
-        max="120000"
-        step="1000"
-        value={diapoDuration}
-        onChange={(e) => setDiapoDuration(e.target.value)}
-      />
-    </>
+      <div id="DiapoDuration">
+        <p>{`Durée : ${diapoDuration}`}</p>
+        <input
+          type="range"
+          min="10000"
+          max="120000"
+          step="1000"
+          value={diapoDuration}
+          onChange={(e) => setDiapoDuration(e.target.value)}
+        />
+      </div>
+
+      <button
+        className={buttonsShownClassname}
+        id="DiapoStop"
+        type="button"
+        onClick={stopDiaporama}
+      >
+        Pause
+      </button>
+      <button
+        className={buttonsShownClassname}
+        id="DiapoStart"
+        type="button"
+        onClick={startDiaporama}
+      >
+        Démarrer le diaporama
+      </button>
+      <button
+        className={buttonsShownClassname}
+        id="DiapoLink"
+        type="button"
+        onClick={navigateToOeuvre}
+      >
+        Fiche de l'oeuvre
+      </button>
+    </div>
   ) : (
     ""
   );
