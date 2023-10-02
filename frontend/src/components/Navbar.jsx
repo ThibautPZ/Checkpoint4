@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { createPortal } from "react-dom";
 import axiosInstance from "../services/axiosInstance";
 import { useNavbarClassnameContext } from "../contexts/NavbarClassnameContext";
 
@@ -96,21 +97,36 @@ function Navbar() {
           alt="burger-menu"
         />
       </button>
-      <BurgerMenuPopUp
-        popUpOpen={popUpOpen}
-        handleNavigationSelected={handleNavigationSelected}
-        handleCategorySelected={handleCategorySelected}
-      />
-      <TechniquesMenuPopUp
-        popUpOpen={popUpOpen}
-        setPopUpOpen={setPopUpOpen}
-        techniques={characteristicsList.techniques}
-      />
-      <FormatsMenuPopUp
-        popUpOpen={popUpOpen}
-        setPopUpOpen={setPopUpOpen}
-        formats={characteristicsList.formats}
-      />
+      {popUpOpen.burger
+        ? createPortal(
+            <BurgerMenuPopUp
+              popUpOpen={popUpOpen}
+              handleNavigationSelected={handleNavigationSelected}
+              handleCategorySelected={handleCategorySelected}
+            />,
+            document.body
+          )
+        : ""}
+      {popUpOpen.subMenu === "Techniques"
+        ? createPortal(
+            <TechniquesMenuPopUp
+              popUpOpen={popUpOpen}
+              setPopUpOpen={setPopUpOpen}
+              techniques={characteristicsList.techniques}
+            />,
+            document.body
+          )
+        : ""}
+      {popUpOpen.subMenu === "Formats"
+        ? createPortal(
+            <FormatsMenuPopUp
+              popUpOpen={popUpOpen}
+              setPopUpOpen={setPopUpOpen}
+              formats={characteristicsList.formats}
+            />,
+            document.body
+          )
+        : ""}
 
       {/* 
       <Link to="/projets">
