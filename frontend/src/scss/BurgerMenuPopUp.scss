@@ -4,8 +4,8 @@
 .BurgerMenuPopUp {
   background-color: variables.$myWhite;
   font-family: variables.$catamaran;
-  z-index: 3;
   position: fixed;
+  z-index: 3;
   top: 55px;
   right: 3px;
   display: flex;
