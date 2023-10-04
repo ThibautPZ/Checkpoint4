@@ -11,6 +11,7 @@ import Bio from "./pages/Bio";
 import BioManagement from "./pages/BioManagement";
 import CarouselManagement from "./pages/CarouselManagement";
 import Contact from "./pages/Contact";
+import Diaporama from "./pages/Diaporama";
 import Messages from "./pages/Messages";
 import Oeuvre from "./pages/Oeuvre";
 import Oeuvres from "./pages/Oeuvres";
@@ -22,18 +23,19 @@ import UtilisateurManagement from "./pages/UtilisateurManagement";
 import Management from "./pages/Management";
 import Technique from "./pages/Technique";
 import Format from "./pages/Format";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar";
 
 const router = createBrowserRouter([
   {
     element: <App />,
 
     children: [
-      { element: <Navbar /> },
+      // { element: <Navbar /> },
       {
         path: "/",
         element: <Accueil />,
       },
+      { path: "/diaporama", element: <Diaporama /> },
       {
         path: "/oeuvres",
         element: <Outlet />,
