@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
+import { useImmer } from "use-immer";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "../services/axiosInstance";
 import { useNavbarClassnameContext } from "../contexts/NavbarClassnameContext";
+import useInterval from "../hooks/useInterval";
+import useTimeout from "../hooks/useTimeout";
 
 import "../scss/Diaporama.scss";
+import getTimeFromMilliseconds from "../services/getTimeFromMilliseconds";
 
 function Diaporama() {
   const [oeuvresList, setOeuvresList] = useState([]);
@@ -12,108 +16,86 @@ function Diaporama() {
   const [buttonsShownClassname, setButtonsShownClassname] =
     useState("DiapoButtonsHidden");
   const [timeOutWillBeStarted, setTimeOutWillBeStarted] = useState(false);
-  const [count, setCount] = useState(0);
-  const [storedTimeFunctionsIds, setStoredTimeFunctionsIds] = useState({
-    nFadeIntervId: 0,
-    nNextTimeOutId: 0,
-    nHideTimeOutId: 0,
-  });
+
   const [diapoDuration, setDiapoDuration] = useState(15000);
+  const [diapoPlaying, setDiapoPlaying] = useState(false);
+  const [timeBeforeNextPainting, setTimeBeforeNextPainting] = useState(null);
+  const [timeBeforeElementsDisappear, setTimeBeforeElementsDisappear] =
+    useState(null);
+  const [playedDiaposIds, setPlayedDiaposIds] = useImmer([]);
 
   const { navbarClassname, setNavbarClassname } = useNavbarClassnameContext();
 
   const navigate = useNavigate();
+
+  const getRandomIndexFromArray = (arr) => {
+    return Math.round(Math.random() * (arr.length - 1));
+  };
+
+  const hasIndexBeenPlayed = (diapoIndex) => {
+    return playedDiaposIds.some((id) => id === diapoIndex);
+  };
+
+  const managePlayedDiaposIds = (newId) => {
+    setPlayedDiaposIds((prev) => {
+      prev.push(newId);
+    });
+    if (
+      oeuvresList.length &&
+      playedDiaposIds.length > (oeuvresList.length * 6) / 10
+    ) {
+      setPlayedDiaposIds((prev) => {
+        prev.shift();
+      });
+    }
+  };
+
+  const getRandomIndexNotAlreadyPlayedFromArray = (array) => {
+    const indexToCheck = getRandomIndexFromArray(array);
+    if (!hasIndexBeenPlayed(indexToCheck)) {
+      managePlayedDiaposIds(indexToCheck);
+      return indexToCheck;
+    }
+    // console.log("same: ", playedDiaposIds, indexToCheck);
+    return getRandomIndexNotAlreadyPlayedFromArray(array);
+  };
+
+  const pickRandomPaintingToDisplay = (listArr) => {
+    let currentOeuvreIndex = 0;
+    if (currentOeuvre) {
+      currentOeuvreIndex = currentOeuvre.id;
+    }
+
+    const index = getRandomIndexNotAlreadyPlayedFromArray(
+      listArr,
+      currentOeuvreIndex
+    );
+
+    return setCurrentOeuvre(listArr[index]);
+  };
 
   const fetchAllOeuvres = async () => {
     try {
       const paintingsList = await axiosInstance.get(`/api/paintings/`);
 
       setOeuvresList(paintingsList.data);
+      pickRandomPaintingToDisplay(paintingsList.data);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const getRandomIndexFromArray = (arr) => {
-    return Math.round(Math.random() * (arr.length - 1));
-  };
-
-  const getRandomIndexNotCurrentFromArray = (arr, currentIndex) => {
-    const indexToCheck = getRandomIndexFromArray(arr);
-    if (indexToCheck !== currentIndex) {
-      return indexToCheck;
-    }
-
-    return getRandomIndexNotCurrentFromArray(arr, currentIndex);
-  };
-
-  const setRandomOeuvreToDisplay = () => {
-    // console.log(storedTimeFunctionsIds);
-    // console.log(oeuvresList);
-    let currentOeuvreIndex = 0;
-    if (currentOeuvre.id) {
-      currentOeuvreIndex = currentOeuvre.id;
-    }
-
-    const index = getRandomIndexNotCurrentFromArray(
-      oeuvresList,
-      currentOeuvreIndex
-    );
-    return setCurrentOeuvre(oeuvresList[index]);
-  };
-
   const fadeOutCurrentThenDisplayNext = () => {
     setFadeInOutClassname("FadeOutDiapo");
-    if (storedTimeFunctionsIds.nNextTimeOutId) {
-      clearTimeout(storedTimeFunctionsIds.nNextTimeOutId);
-    }
-    const nNextTimeOutId = setTimeout(() => {
-      console.warn("next");
-      setRandomOeuvreToDisplay();
-      setFadeInOutClassname("FadeInDiapo");
-    }, 3100);
-    setStoredTimeFunctionsIds({
-      ...storedTimeFunctionsIds,
-      nNextTimeOutId,
-    });
-  };
-
-  const changeOeuvre = () => {
-    // console.log(storedTimeFunctionsIds);
-    // check if an interval has already been set up
-    if (storedTimeFunctionsIds.nFadeIntervId) {
-      clearInterval(storedTimeFunctionsIds.nFadeIntervId);
-    }
-    const nFadeIntervId = setInterval(
-      () => {
-        console.warn("fade");
-        fadeOutCurrentThenDisplayNext();
-      },
-
-      diapoDuration
-    );
-    setStoredTimeFunctionsIds({
-      ...storedTimeFunctionsIds,
-      nFadeIntervId,
-    });
-  };
-  // console.log(storedTimeFunctionsIds);
-  const initializeDiaporama = () => {
-    setRandomOeuvreToDisplay();
-    // changeOeuvre();
+    setTimeBeforeNextPainting(3100);
   };
 
   const stopDiaporama = () => {
-    // console.log("stop");
-
-    clearInterval(storedTimeFunctionsIds.nFadeIntervId);
-    clearInterval(storedTimeFunctionsIds.nFadeIntervId + 1);
+    setDiapoPlaying(false);
   };
 
   const startDiaporama = () => {
-    // console.log("start");
-
-    changeOeuvre();
+    setDiapoPlaying(true);
   };
 
   const navigateToOeuvre = () => {
@@ -131,6 +113,19 @@ function Diaporama() {
     }
   };
 
+  const modifyRangeInputStep = () => {
+    if (diapoDuration < 30000) {
+      return "1000";
+    }
+    if (diapoDuration < 60000) {
+      return "2000";
+    }
+    if (diapoDuration < 120000) {
+      return "5000";
+    }
+    return "10000";
+  };
+
   useEffect(() => {
     fetchAllOeuvres();
 
@@ -138,67 +133,56 @@ function Diaporama() {
       setNavbarClassname("NavbarDiapoHidden");
     }
 
-    const nTimerIntervId = setInterval(() => {
-      setCount((prev) => prev + 1);
-    }, 500);
-
     return () => {
-      // console.log(storedTimeFunctionsIds);
-      clearInterval(nTimerIntervId);
-      clearInterval(storedTimeFunctionsIds.nFadeIntervId);
-      clearTimeout(storedTimeFunctionsIds.nNextTimeOutId);
-      clearTimeout(storedTimeFunctionsIds.nHideTimeOutId);
       setNavbarClassname("Navbar");
     };
   }, []);
 
-  useEffect(() => {
-    // console.log("checkTimeOutToBeStarted: ", timeOutWillBeStarted);
+  useTimeout(() => {
+    console.warn("time");
+    if (navbarClassname !== "NavbarDiapoHidden") {
+      setNavbarClassname("NavbarDiapoHidden");
+    }
+    if (buttonsShownClassname !== "DiapoButtonsHidden") {
+      setButtonsShownClassname("DiapoButtonsHidden");
+    }
+    setTimeBeforeElementsDisappear(null);
+  }, timeBeforeElementsDisappear);
+
+  useInterval(() => {
     if (timeOutWillBeStarted) {
-      if (storedTimeFunctionsIds.nHideTimeOutId) {
+      if (timeBeforeElementsDisappear) {
         showNavbarAndButtons();
-        clearTimeout(storedTimeFunctionsIds.nHideTimeOutId);
+        setTimeBeforeElementsDisappear((prev) => prev * 0);
       }
-      const nHideTimeOutId = setTimeout(() => {
-        console.warn("time", storedTimeFunctionsIds.nHideTimeOutId);
-        if (navbarClassname !== "NavbarDiapoHidden") {
-          setNavbarClassname("NavbarDiapoHidden");
-        }
-        if (buttonsShownClassname !== "DiapoButtonsHidden") {
-          setButtonsShownClassname("DiapoButtonsHidden");
-        }
-      }, 3000);
-      setStoredTimeFunctionsIds({ ...storedTimeFunctionsIds, nHideTimeOutId });
-      // console.log(storedTimeFunctionsIds);
+      setTimeBeforeElementsDisappear((prev) => prev + 5000);
 
       setTimeOutWillBeStarted((prev) => !prev);
     }
-  }, [count]);
+  }, 200);
 
-  useEffect(() => {
-    if (oeuvresList.length) {
-      //   console.log("fetch");
-      //   fetchAllOeuvres();
-      // } else {
-      // console.log("init");
-      initializeDiaporama();
-    }
-    // if (navbarClassname === "Navbar") {
-    //   setNavbarClassname("NavbarDiapoHidden");
-    // }
-  }, [oeuvresList]);
+  useInterval(
+    () => {
+      console.warn("fade");
+      fadeOutCurrentThenDisplayNext();
+    },
+    diapoPlaying ? diapoDuration : null
+  );
 
-  // console.log(currentOeuvre);
+  useTimeout(() => {
+    console.warn("next");
+    pickRandomPaintingToDisplay(oeuvresList);
+    setFadeInOutClassname("FadeInDiapo");
+    setTimeBeforeNextPainting(null);
+  }, timeBeforeNextPainting);
+
   return currentOeuvre?.id ? (
     <div
       className="DiapoParent"
       onMouseMove={() => setTimeOutWillBeStarted(true)}
       onTouchStart={() => setTimeOutWillBeStarted(true)}
     >
-      <div
-        className={fadeInOutClassname}
-        // key={currentOeuvre.id}
-      >
+      <div className={fadeInOutClassname}>
         <img
           src={`${import.meta.env.VITE_BACKEND_URL}${
             import.meta.env.VITE_PAINTINGS_PATH
@@ -206,34 +190,37 @@ function Diaporama() {
           alt={currentOeuvre.title}
         />
       </div>
-      <div id="DiapoDuration">
-        <p>{`Durée : ${diapoDuration}`}</p>
+      <div className={buttonsShownClassname} id="DiapoDuration">
+        <p>{`Durée : ${getTimeFromMilliseconds(diapoDuration)}`}</p>
         <input
           type="range"
           min="10000"
-          max="120000"
-          step="1000"
+          max="300000"
+          step={modifyRangeInputStep()}
           value={diapoDuration}
           onChange={(e) => setDiapoDuration(e.target.value)}
         />
       </div>
+      {diapoPlaying ? (
+        <button
+          className={buttonsShownClassname}
+          id="DiapoStop"
+          type="button"
+          onClick={stopDiaporama}
+        >
+          Pause
+        </button>
+      ) : (
+        <button
+          className={buttonsShownClassname}
+          id="DiapoStart"
+          type="button"
+          onClick={startDiaporama}
+        >
+          Démarrer le diaporama
+        </button>
+      )}
 
-      <button
-        className={buttonsShownClassname}
-        id="DiapoStop"
-        type="button"
-        onClick={stopDiaporama}
-      >
-        Pause
-      </button>
-      <button
-        className={buttonsShownClassname}
-        id="DiapoStart"
-        type="button"
-        onClick={startDiaporama}
-      >
-        Démarrer le diaporama
-      </button>
       <button
         className={buttonsShownClassname}
         id="DiapoLink"
