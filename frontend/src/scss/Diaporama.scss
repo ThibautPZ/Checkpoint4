@@ -19,10 +19,8 @@
     object-fit: contain;
     width: 100%;
     max-height: 100%;
-    animation: FadeIn 3s linear //initial 1 normal initial initial
-;
+    animation: FadeIn 3s linear;
   }
-  // animatio
 }
 
 .FadeOutDiapo {
@@ -37,14 +35,12 @@
     object-fit: contain;
     width: 100%;
     max-height: 100%;
-    animation: FadeOut 3s linear; //initial 1 normal initial initial;
+    animation: FadeOut 3s linear;
     opacity: 0;
   }
-  // animatio
 }
 
 .DiapoButtonsHidden {
-  z-index: -1;
   position: absolute;
   opacity: 0;
   font-family: variables.$catamaran;
@@ -63,15 +59,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-around;
+  justify-content: space-evenly;
   height: 60px;
   width: 200px;
 
-  top: 75%;
+  top: 76%;
   left: calc(50% - 100px);
   background-color: rgba(128, 128, 128, 0.575);
   p {
     margin-top: 0;
+    margin-left: 20%;
+    align-self: baseline;
   }
 
   input {
@@ -84,19 +82,19 @@
 }
 
 #DiapoStop {
-  top: 90%;
+  top: 86%;
   left: calc(50% - 75px);
   width: 150px;
 }
 
 #DiapoStart {
-  top: 85%;
+  top: 86%;
   left: calc(50% - 100px);
   width: 200px;
 }
 
 #DiapoLink {
-  top: 95%;
+  top: 92%;
   left: calc(50% - 75px);
   width: 150px;
 }
