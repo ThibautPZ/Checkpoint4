@@ -4,7 +4,7 @@
 require("dotenv").config();
 
 // Import Faker library for generating fake data
-const { faker } = require("@faker-js/faker");
+// const { faker } = require("@faker-js/faker");
 
 // Get database connection details from .env file
 const { DB_HOST, DB_PORT, DB_USER, DB_PASSWORD, DB_NAME } = process.env;
@@ -34,19 +34,19 @@ const seed = async () => {
     await database.query("truncate item");
 
     // Insert fake data into the 'item' table
-    const queries = [];
-    for (let i = 0; i < 10; i += 1) {
-      queries.push(
-        database.query("insert into item(title) values (?)", [
-          faker.lorem.word(),
-        ])
-      );
-    }
+    // const queries = [];
+    // for (let i = 0; i < 10; i += 1) {
+    //   queries.push(
+    //     database.query("insert into item(title) values (?)", [
+    //       faker.lorem.word(),
+    //     ])
+    //   );
+    // }
 
     /* ************************************************************************* */
 
     // Wait for all the insertion queries to complete
-    await Promise.all(queries);
+    // await Promise.all(queries);
 
     // Close the database connection
     database.end();
