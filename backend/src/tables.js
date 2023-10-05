@@ -6,8 +6,14 @@
 const ItemManager = require("./models/ItemManager");
 const PaintingsManager = require("./models/PaintingsManager");
 const TechniquesManager = require("./models/TechniquesManager");
+const UsersManager = require("./models/usersManager");
 
-const managers = [ItemManager, PaintingsManager, TechniquesManager];
+const managers = [
+  ItemManager,
+  PaintingsManager,
+  TechniquesManager,
+  UsersManager,
+];
 
 // Create an empty object to hold data managers for different tables
 const tables = {};
